@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>سوق العملات التجريبي</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: single-column phone app, three tabs pinned to the bottom (markets, trade, portfolio). */
+:root{
+  --bg:#f2f5f4; --surface:#ffffff; --fg:#14201d; --muted:#5b6c67; --line:#dce4e1;
+  --accent:#0f6b5c; --accent-fg:#ffffff; --up:#0b8a55; --down:#c53a3a;
+  --up-bg:#e0f3ea; --down-bg:#fbe5e5; --chip:#e8eeec;
+  --font:'IBM Plex Sans Arabic',system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0d1412; --surface:#152120; --fg:#e5eeeb; --muted:#92a49e; --line:#243230;
+  --accent:#3cc2a5; --accent-fg:#06201a; --up:#3ccf8e; --down:#ff6b6b;
+  --up-bg:#143327; --down-bg:#3a1c1e; --chip:#1d2c2a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d1412; --surface:#152120; --fg:#e5eeeb; --muted:#92a49e; --line:#243230;
+  --accent:#3cc2a5; --accent-fg:#06201a; --up:#3ccf8e; --down:#ff6b6b;
+  --up-bg:#143327; --down-bg:#3a1c1e; --chip:#1d2c2a; color-scheme:dark}
+html,body{height:auto}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:15px;line-height:1.6;padding-inline:16px;padding-block:0}
+*{box-sizing:border-box}
+#app{max-width:520px;margin:0 auto;padding-block:14px 92px}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-family:var(--mono);direction:ltr;unicode-bidi:isolate;font-variant-numeric:tabular-nums}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+h1{font-size:20px;margin:0;font-weight:700}
+h2{font-size:17px;margin:18px 0 8px;font-weight:600}
+.badge{font-size:12px;padding:3px 10px;border-radius:99px;background:var(--chip);color:var(--muted);white-space:nowrap}
+.badge.live{background:var(--up-bg);color:var(--up)}
+.note{font-size:13px;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:12px}
+.list{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.row{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;background:none;border:0;border-bottom:1px solid var(--line);text-align:start}
+.row:last-child{border-bottom:0}
+.ico{flex:none;width:38px;height:38px;border-radius:50%;background:var(--chip);display:grid;place-items:center;font-size:11px;font-weight:700;font-family:var(--mono);color:var(--accent)}
+.grow{flex:1;min-width:0}
+.sym{font-weight:600}
+.sub{font-size:12px;color:var(--muted)}
+.pxcol{text-align:end}
+.pill{display:inline-block;min-width:68px;text-align:center;font-size:13px;padding:2px 8px;border-radius:8px;font-family:var(--mono);direction:ltr}
+.pill.up{background:var(--up-bg);color:var(--up)}
+.pill.dn{background:var(--down-bg);color:var(--down)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px}
+.big{font-size:30px;font-weight:600;line-height:1.2}
+.chart{display:block;width:100%;height:120px}
+.chart .ln{fill:none;stroke:currentColor;stroke-width:2;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+.chart .area{fill:currentColor;opacity:.12;stroke:none}
+.cwrap{direction:ltr;margin-top:10px}
+.cwrap.up{color:var(--up)}.cwrap.dn{color:var(--down)}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--chip);padding:4px;border-radius:12px;margin:14px 0 12px}
+.seg button{border:0;background:none;padding:8px;border-radius:9px;font-weight:600;color:var(--muted)}
+.seg button.on.buy{background:var(--up);color:#fff}
+.seg button.on.sell{background:var(--down);color:#fff}
+label{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
+select,input[type=number]{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);font-size:16px}
+input[type=number]{direction:ltr;text-align:start;font-family:var(--mono)}
+.pcts{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0}
+.pcts button{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:6px 0;font-size:13px}
+.kv{display:flex;justify-content:space-between;gap:10px;font-size:13px;color:var(--muted);padding:2px 0}
+.cta{width:100%;margin-top:12px;border:0;border-radius:12px;padding:13px;font-weight:700;font-size:16px;color:#fff}
+.cta.buy{background:var(--up)}.cta.sell{background:var(--down)}
+.msg{min-height:22px;margin-top:8px;font-size:14px}
+.msg.err{color:var(--down)}.msg.ok{color:var(--up)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.stats>div{min-width:0}
+.stats .v{font-size:17px;font-weight:600}
+.ghost{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 14px;font-size:14px}
+.ghost.danger{color:var(--down);border-color:var(--down)}
+.empty{padding:22px 14px;text-align:center;color:var(--muted);font-size:14px}
+nav{position:fixed;inset-inline:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom,0px)}
+nav .in{display:grid;grid-template-columns:repeat(3,1fr);width:100%;max-width:520px}
+nav button{border:0;background:none;padding:12px 4px;font-size:14px;font-weight:500;color:var(--muted)}
+nav button.on{color:var(--accent);font-weight:700;box-shadow:inset 0 3px 0 var(--accent)}
+.tbl{overflow-x:auto}
+.hist{display:flex;justify-content:space-between;gap:8px;padding:9px 14px;border-bottom:1px solid var(--line);font-size:13px}
+.hist:last-child{border-bottom:0}
+.hist .s{font-weight:600}
+.hist .s.buy{color:var(--up)}.hist .s.sell{color:var(--down)}
+@media (prefers-reduced-motion:no-preference){.row{transition:background .15s}.row:active{background:var(--chip)}}
+body{margin:0}
+</style>
+
+</head>
+<body>
+<div id="app" dir="rtl" lang="ar">
+  <header>
+    <h1>سوق العملات التجريبي</h1>
+    <span id="badge" class="badge">جارٍ التحميل</span>
+  </header>
+  <div id="v"></div>
+</div>
+<nav><div class="in" dir="rtl">
+  <button data-view="markets" class="on">الأسواق</button>
+  <button data-view="trade">تداول</button>
+  <button data-view="wallet">محفظتي</button>
+</div></nav>
+
+<script>
+(function(){
+var START=10000, FEE=0.001;
+var COINS=[
+ {s:'BTC',n:'بيتكوين',p:95000,id:'bitcoin'},{s:'ETH',n:'إيثيريوم',p:3300,id:'ethereum'},
+ {s:'BNB',n:'بي إن بي',p:640,id:'binancecoin'},{s:'SOL',n:'سولانا',p:180,id:'solana'},
+ {s:'XRP',n:'ريبل',p:2.2,id:'ripple'},{s:'ADA',n:'كاردانو',p:0.85,id:'cardano'},
+ {s:'DOGE',n:'دوجكوين',p:0.32,id:'dogecoin'},{s:'TRX',n:'ترون',p:0.24,id:'tron'},
+ {s:'TON',n:'تون',p:5.5,id:'the-open-network'},{s:'LINK',n:'تشين لينك',p:18,id:'chainlink'}
+];
+var price={},chg={},open={},demoHist={},liveHist={};
+var mode='demo',view='markets',sel='BTC',side='buy',confirmReset=false,msg={t:'',k:''},lastTry=0,klineReq={};
+var S=load();
+
+function $(id){return document.getElementById(id)}
+function load(){try{var r=localStorage.getItem('paper-v1');if(r){var o=JSON.parse(r);if(o&&typeof o.cash==='number'&&o.pos&&o.trades)return o}}catch(e){}return{cash:START,pos:{},trades:[]}}
+function save(){try{localStorage.setItem('paper-v1',JSON.stringify(S))}catch(e){}}
+function coin(s){for(var i=0;i<COINS.length;i++)if(COINS[i].s===s)return COINS[i]}
+function fmtP(v){if(v>=1)return v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});return v.toFixed(4)}
+function fmtU(v){return v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function fmtQ(q){return q>=1?q.toFixed(4):q.toFixed(6)}
+function fmtC(c){return (c>=0?'+':'')+c.toFixed(2)+'%'}
+function pill(c){return '<span class="pill '+(c>=0?'up':'dn')+'">'+fmtC(c)+'</span>'}
+
+/* demo data: simulated prices, used when no live source is reachable */
+COINS.forEach(function(c){
+  price[c.s]=c.p;chg[c.s]=(Math.random()-0.5)*8;open[c.s]=c.p/(1+chg[c.s]/100);
+  var a=[],p=c.p;for(var i=0;i<60;i++){a.unshift(p);p=p/(1+(Math.random()-0.5)*0.012)}
+  demoHist[c.s]=a;
+});
+function demoTick(){
+  COINS.forEach(function(c){
+    var p=price[c.s]*(1+(Math.random()-0.5)*0.0025);price[c.s]=p;
+    chg[c.s]=(p/open[c.s]-1)*100;demoHist[c.s].push(p);if(demoHist[c.s].length>60)demoHist[c.s].shift();
+  });
+}
+
+/* live data: Binance public API, then CoinGecko */
+function getJSON(u){
+  var ctl=new AbortController(),t=setTimeout(function(){ctl.abort()},6000);
+  return fetch(u,{signal:ctl.signal}).then(function(r){clearTimeout(t);if(!r.ok)throw new Error('http');return r.json()},function(e){clearTimeout(t);throw e});
+}
+function pull(){
+  var syms=encodeURIComponent(JSON.stringify(COINS.map(function(c){return c.s+'USDT'})));
+  return getJSON('https://api.binance.com/api/v3/ticker/24hr?symbols='+syms).then(function(d){
+    d.forEach(function(x){var s=x.symbol.replace('USDT','');price[s]=+x.lastPrice;chg[s]=+x.priceChangePercent});
+    mode='live';return true;
+  }).catch(function(){
+    var ids=COINS.map(function(c){return c.id}).join(',');
+    return getJSON('https://api.coingecko.com/api/v3/simple/price?ids='+ids+'&vs_currencies=usd&include_24hr_change=true').then(function(d){
+      COINS.forEach(function(c){if(d[c.id]){price[c.s]=d[c.id].usd;chg[c.s]=d[c.id].usd_24h_change||0}});
+      mode='live';return true;
+    }).catch(function(){return false});
+  });
+}
+function loadKlines(s){
+  if(mode!=='live'||liveHist[s]||klineReq[s])return;klineReq[s]=1;
+  getJSON('https://api.binance.com/api/v3/klines?symbol='+s+'USDT&interval=1h&limit=48').then(function(k){
+    liveHist[s]=k.map(function(x){return +x[4]});if(view==='trade'&&sel===s)updateTrade();
+  }).catch(function(){klineReq[s]=0});
+}
+function cycle(){
+  var go=(mode==='live')||(Date.now()-lastTry>60000);
+  var p=go?(lastTry=Date.now(),pull()):Promise.resolve(false);
+  p.then(function(ok){
+    if(!ok&&mode!=='live')demoTick();
+    if(!ok&&mode==='live'){/* keep last live prices */}
+    refresh();
+    setTimeout(cycle,mode==='live'?8000:2000);
+  });
+}
+
+/* views */
+function chartHTML(s){
+  var a=mode==='live'?(liveHist[s]?liveHist[s].slice(0,-1).concat([price[s]]):null):demoHist[s];
+  if(!a||a.length<2)return '<div class="empty">جارٍ تحميل الرسم البياني</div>';
+  var w=320,h=120,mn=Math.min.apply(null,a),mx=Math.max.apply(null,a),r=(mx-mn)||1;
+  var d=a.map(function(v,i){return (i?'L':'M')+((i/(a.length-1))*w).toFixed(1)+' '+(h-6-((v-mn)/r)*(h-12)).toFixed(1)}).join('');
+  return '<svg class="chart" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" aria-hidden="true"><path class="area" d="'+d+'L'+w+' '+h+'L0 '+h+'Z"/><path class="ln" d="'+d+'"/></svg>';
+}
+function viewMarkets(){
+  var rows=COINS.map(function(c){
+    return '<button class="row" data-coin="'+c.s+'"><span class="ico">'+c.s.slice(0,3)+'</span>'+
+      '<span class="grow"><div class="sym">'+c.n+'</div><div class="sub num">'+c.s+'/USDT</div></span>'+
+      '<span class="pxcol"><div class="num">'+fmtP(price[c.s])+'</div>'+pill(chg[c.s])+'</span></button>';
+  }).join('');
+  var note=mode==='live'?'':'<div class="note">الأسعار هنا محاكاة تتحرك عشوائيًا، لأن هذه الصفحة لا تستطيع الاتصال بمصدر الأسعار. عند فتح الملف من مستضيف عادي تظهر الأسعار الحقيقية تلقائيًا.</div>';
+  return note+'<div class="list">'+rows+'</div>';
+}
+function holding(s){return S.pos[s]?S.pos[s].qty:0}
+function viewTrade(){
+  var c=coin(sel),opts=COINS.map(function(x){return '<option value="'+x.s+'"'+(x.s===sel?' selected':'')+'>'+x.n+' ('+x.s+')</option>'}).join('');
+  var up=chg[sel]>=0;
+  return '<div class="card"><label for="tSel">العملة</label><select id="tSel">'+opts+'</select>'+
+    '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-top:12px"><span class="big num" id="tPrice">'+fmtP(price[sel])+'</span><span id="tChg">'+pill(chg[sel])+'</span></div>'+
+    '<div class="sub">آخر 24 ساعة مقابل USDT</div>'+
+    '<div class="cwrap '+(up?'up':'dn')+'" id="tChart">'+chartHTML(sel)+'</div></div>'+
+    '<div class="seg"><button data-side="buy" class="buy'+(side==='buy'?' on':'')+'">شراء</button><button data-side="sell" class="sell'+(side==='sell'?' on':'')+'">بيع</button></div>'+
+    '<div class="card"><div class="kv"><span>'+(side==='buy'?'الرصيد المتاح':'المتاح للبيع')+'</span><span class="num" id="tAvail"></span></div>'+
+    '<label for="tAmt" style="margin-top:8px">المبلغ بالدولار (USDT)</label><input id="tAmt" type="number" inputmode="decimal" min="0" step="any" placeholder="0.00">'+
+    '<div class="pcts"><button data-pct="0.25">25%</button><button data-pct="0.5">50%</button><button data-pct="0.75">75%</button><button data-pct="1">100%</button></div>'+
+    '<div class="kv"><span>الكمية التقريبية</span><span class="num" id="tQty">0</span></div>'+
+    '<div class="kv"><span>الرسوم (0.1%)</span><span class="num" id="tFee">0.00</span></div>'+
+    '<button class="cta '+side+'" id="tGo">'+(side==='buy'?'شراء ':'بيع ')+c.n+'</button>'+
+    '<div class="msg '+msg.k+'" id="tMsg">'+msg.t+'</div></div>';
+}
+function totals(){
+  var inv=0,cost=0;Object.keys(S.pos).forEach(function(s){var p=S.pos[s];if(p.qty>0){inv+=p.qty*price[s];cost+=p.cost}});
+  return {inv:inv,cost:cost,total:S.cash+inv};
+}
+function viewWallet(){
+  var t=totals(),pl=t.total-START,plp=pl/START*100,up=pl>=0;
+  var hs=Object.keys(S.pos).filter(function(s){return S.pos[s].qty>0}).map(function(s){
+    var p=S.pos[s],v=p.qty*price[s],g=(v/p.cost-1)*100,c=coin(s);
+    return '<button class="row" data-coin="'+s+'"><span class="ico">'+s.slice(0,3)+'</span><span class="grow"><div class="sym">'+c.n+'</div><div class="sub num">'+fmtQ(p.qty)+' '+s+'</div></span>'+
+      '<span class="pxcol"><div class="num">$'+fmtU(v)+'</div>'+pill(g)+'</span></button>';
+  }).join('');
+  var th=S.trades.slice(0,20).map(function(x){
+    var d=new Date(x.t),ds=d.toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    return '<div class="hist"><span><span class="s '+x.side+'">'+(x.side==='buy'?'شراء':'بيع')+'</span> <span class="num">'+fmtQ(x.qty)+' '+x.s+'</span></span><span class="num">'+fmtP(x.price)+' · '+ds+'</span></div>';
+  }).join('');
+  var reset=confirmReset?'<div class="msg err">سيُمسح كل شيء ويعود الرصيد إلى 10,000 دولار.</div><div style="display:flex;gap:8px"><button class="ghost danger" data-act="reset-yes">نعم، امسح</button><button class="ghost" data-act="reset-no">إلغاء</button></div>':'<button class="ghost" data-act="reset">إعادة ضبط الحساب</button>';
+  return '<div class="card"><div class="sub">إجمالي قيمة الحساب</div><div class="big num">$'+fmtU(t.total)+'</div>'+
+    '<div style="margin-top:4px">'+pill(plp)+' <span class="sub num">'+(pl>=0?'+':'-')+'$'+fmtU(Math.abs(pl))+' منذ البداية</span></div>'+
+    '<div class="stats"><div><div class="sub">نقد متاح</div><div class="v num">$'+fmtU(S.cash)+'</div></div><div><div class="sub">قيمة العملات</div><div class="v num">$'+fmtU(t.inv)+'</div></div></div></div>'+
+    '<h2>ما تملكه</h2><div class="list">'+(hs||'<div class="empty">لا تملك عملات بعد. اختر عملة من الأسواق وجرّب أول عملية شراء.</div>')+'</div>'+
+    '<h2>آخر العمليات</h2><div class="list">'+(th||'<div class="empty">لا توجد عمليات بعد.</div>')+'</div>'+
+    '<div style="margin-top:16px">'+reset+'</div>';
+}
+function render(){
+  $('v').innerHTML=view==='markets'?viewMarkets():view==='trade'?viewTrade():viewWallet();
+  if(view==='trade'){loadKlines(sel);updateTrade()}
+  var b=$('badge');b.textContent=mode==='live'?'أسعار مباشرة':'أسعار محاكاة';b.className='badge'+(mode==='live'?' live':'');
+  var bs=document.querySelectorAll('nav button');for(var i=0;i<bs.length;i++)bs[i].className=bs[i].getAttribute('data-view')===view?'on':'';
+}
+function maxAmt(){return side==='buy'?S.cash:holding(sel)*price[sel]}
+function updateTrade(){
+  if(view!=='trade'||!$('tPrice'))return;
+  $('tPrice').textContent=fmtP(price[sel]);$('tChg').innerHTML=pill(chg[sel]);
+  var cw=$('tChart');cw.className='cwrap '+(chg[sel]>=0?'up':'dn');cw.innerHTML=chartHTML(sel);
+  $('tAvail').textContent=side==='buy'?'$'+fmtU(S.cash):fmtQ(holding(sel))+' '+sel;
+  var a=parseFloat($('tAmt').value)||0;
+  $('tQty').textContent=fmtQ(side==='buy'?(a*(1-FEE))/price[sel]:a/price[sel])+' '+sel;
+  $('tFee').textContent='$'+fmtU(a*FEE);
+}
+function refresh(){if(view==='trade')updateTrade();else render()}
+function setMsg(t,k){msg={t:t,k:k};var m=$('tMsg');if(m){m.textContent=t;m.className='msg '+k}}
+
+function execute(){
+  var amt=parseFloat($('tAmt').value),p=price[sel],c=coin(sel);
+  if(!(amt>0))return setMsg('اكتب مبلغًا أكبر من صفر.','err');
+  if(side==='buy'){
+    if(amt>S.cash+1e-9)return setMsg('المبلغ أكبر من رصيدك المتاح.','err');
+    var qty=amt*(1-FEE)/p,pos=S.pos[sel]||(S.pos[sel]={qty:0,cost:0});
+    S.cash-=amt;pos.qty+=qty;pos.cost+=amt*(1-FEE);
+    S.trades.unshift({t:Date.now(),side:'buy',s:sel,qty:qty,price:p});
+    setMsg('تم شراء '+fmtQ(qty)+' '+sel+' بسعر '+fmtP(p),'ok');
+  }else{
+    var held=holding(sel);if(held<=0)return setMsg('لا تملك '+c.n+' لتبيعها.','err');
+    var q=amt/p;if(q>=held*0.9999)q=held;
+    var gross=q*p,pos2=S.pos[sel];
+    S.cash+=gross*(1-FEE);pos2.cost-=pos2.cost*(q/held);pos2.qty-=q;if(pos2.qty<=1e-12)delete S.pos[sel];
+    S.trades.unshift({t:Date.now(),side:'sell',s:sel,qty:q,price:p});
+    setMsg('تم بيع '+fmtQ(q)+' '+sel+' بسعر '+fmtP(p),'ok');
+  }
+  if(S.trades.length>200)S.trades.length=200;
+  save();$('tAmt').value='';updateTrade();
+}
+
+document.addEventListener('click',function(e){
+  var el=e.target.closest('[data-view],[data-coin],[data-side],[data-pct],[data-act],#tGo');if(!el)return;
+  if(el.hasAttribute('data-view')){view=el.getAttribute('data-view');confirmReset=false;render();window.scrollTo(0,0)}
+  else if(el.hasAttribute('data-coin')){sel=el.getAttribute('data-coin');view='trade';msg={t:'',k:''};render();window.scrollTo(0,0)}
+  else if(el.hasAttribute('data-side')){side=el.getAttribute('data-side');msg={t:'',k:''};render()}
+  else if(el.hasAttribute('data-pct')){var m=maxAmt()*parseFloat(el.getAttribute('data-pct'));$('tAmt').value=m>0?(Math.floor(m*100)/100).toString():'';updateTrade()}
+  else if(el.id==='tGo')execute();
+  else{var a=el.getAttribute('data-act');
+    if(a==='reset'){confirmReset=true;render()}
+    if(a==='reset-no'){confirmReset=false;render()}
+    if(a==='reset-yes'){S={cash:START,pos:{},trades:[]};save();confirmReset=false;render()}}
+});
+document.addEventListener('change',function(e){if(e.target.id==='tSel'){sel=e.target.value;msg={t:'',k:''};render()}});
+document.addEventListener('input',function(e){if(e.target.id==='tAmt')updateTrade()});
+
+render();cycle();
+})();
+</script>
+
+</body>
+</html>
